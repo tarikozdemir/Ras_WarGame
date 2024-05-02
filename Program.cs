@@ -58,7 +58,7 @@ internal class Program
         playerTwo.gold -= choice.cost;
         Console.WriteLine("---------------LAST MOVE------------------");
         Console.WriteLine($"{playerTwo.name} got a {choice.name}.");
-        Console.WriteLine($"{playerTwo.name}'s has {playerTwo.gold} gold remaining.");
+        Console.WriteLine($"{playerTwo.name} has {playerTwo.gold} gold remaining.");
         Console.WriteLine("------------------------------------------");
         weaponMarket.Remove(choice);
 
@@ -70,10 +70,10 @@ internal class Program
 
     public static Weapon AskWeapons(Player player, List<Weapon> weapons)
     {
-        Console.WriteLine($"{player.name}, Which weapon do you want to take? You have {player.gold} golds.");
+        Console.WriteLine($"{player.name}, Which weapon do you want to buy? You have {player.gold} golds.");
         for (int i = 0; i < weapons.Count; i++)
         {
-            Console.WriteLine($"{i + 1}- {weapons[i].name} costs ({weapons[i].cost} gold)");
+            Console.WriteLine($"{i + 1}- {weapons[i].name} costs {weapons[i].cost} golds.");
         }
         var choice = Console.ReadLine();
         if (int.TryParse(choice, out var intchoice))
@@ -138,7 +138,7 @@ public class Player
 
         if (CanAttack(target) == false)
         {
-            Console.WriteLine($"{target.name} is out of range of {this.name}");
+            Console.WriteLine($"{target.name} is out of range of {this.name}.");
             return;
         }
 
@@ -146,10 +146,10 @@ public class Player
         if (target.health <= 0)
         {
             target.status = 0;
-            Console.WriteLine($"{target.name} is attacked and killed by {this.name}");
+            Console.WriteLine($"{target.name} is attacked and killed by {this.name}.");
         }
         else
-            Console.WriteLine($"{target.name} is attacked by {this.name}. Remaining health of {target.name} is {target.health}, still alive.");
+            Console.WriteLine($"{target.name} is attacked by {this.name}. {target.name}'s remaining is {target.health}, still alive.");
     }
 
     public bool CanAttack(Player target)
