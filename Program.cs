@@ -48,7 +48,7 @@ internal class Program
         playerOne.gold -= choice.cost;
         Console.WriteLine("---------------LAST MOVE------------------");
         Console.WriteLine($"{playerOne.name} got a {choice.name}.");
-        Console.WriteLine($"{playerOne.name}'s remaining gold is {playerOne.gold}");
+        Console.WriteLine($"{playerOne.name}'s has {playerOne.gold} golds remaining.");
         Console.WriteLine("-----------------------------------------");
         weaponMarket.Remove(choice);
 
@@ -58,7 +58,7 @@ internal class Program
         playerTwo.gold -= choice.cost;
         Console.WriteLine("---------------LAST MOVE------------------");
         Console.WriteLine($"{playerTwo.name} got a {choice.name}.");
-        Console.WriteLine($"{playerTwo.name}'s remaining gold is {playerTwo.gold}.");
+        Console.WriteLine($"{playerTwo.name}'s has {playerTwo.gold} gold remaining.");
         Console.WriteLine("------------------------------------------");
         weaponMarket.Remove(choice);
 
