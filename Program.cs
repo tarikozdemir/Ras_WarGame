@@ -43,8 +43,8 @@ internal class Program
         playerOne.currentWeapon = choice;
         playerOne.gold -= choice.cost;
         Console.WriteLine("---------------LAST MOVE------------------");
-        Console.WriteLine($"{playerOne.name} got {choice.name}.");
-        Console.WriteLine($"Remaining gold is {playerOne.gold}");
+        Console.WriteLine($"{playerOne.name} got a {choice.name}.");
+        Console.WriteLine($"{playerOne.name}'s remaining gold is {playerOne.gold}");
         Console.WriteLine("-----------------------------------------");
         weaponMarket.Remove(choice);
 
@@ -53,9 +53,9 @@ internal class Program
         playerTwo.currentWeapon = choice;
         playerTwo.gold -= choice.cost;
         Console.WriteLine("---------------LAST MOVE------------------");
-        Console.WriteLine($"{playerTwo.name} got {choice.name}.");
-        Console.WriteLine($"Remaining gold is {playerTwo.gold}");
-        Console.WriteLine("-----------------------------------------");
+        Console.WriteLine($"{playerTwo.name} got a {choice.name}.");
+        Console.WriteLine($"{playerTwo.name}'s remaining gold is {playerTwo.gold}.");
+        Console.WriteLine("------------------------------------------");
         weaponMarket.Remove(choice);
 
         playerTwo.Attack(playerOne);
@@ -126,13 +126,13 @@ public class Player
 
         if (currentWeapon == null)
         {
-            Console.WriteLine("You do not have any weaponin your hand.");
+            Console.WriteLine("You do not have any weapon in your hand.");
             return;
         }
 
         if (CanAttack(target) == false)
         {
-            Console.WriteLine($"{target.name} is not within {this.name}'s range");
+            Console.WriteLine($"{target.name} is out of range of {this.name}");
             return;
         }
 
