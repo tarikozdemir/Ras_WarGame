@@ -62,9 +62,37 @@ internal class Program
         Console.WriteLine("----------------- NEXT ------------------");
         weaponMarket.Remove(choice);
 
-        playerTwo.Attack(playerOne);
-        playerOne.Attack(playerTwo);
-        playerOne.Attack(playerTwo);
+        Console.WriteLine($"{playerOne.name}, What do you want to do? Press 1 for Attack, 2 for Move");
+        var nextAction = Console.ReadLine()!;
+
+        if (int.Parse(nextAction) == 1)
+        {
+            playerOne.Attack(playerTwo);
+
+        }
+        else if (int.Parse(nextAction) == 2)
+        {
+            playerOne.Move(playerOne.position);
+            Console.WriteLine("--------------- LAST MOVE ---------------");
+            Console.WriteLine($"{playerOne.name} moved a new position of {playerOne.position}.");
+            Console.WriteLine("----------------- NEXT ------------------");
+        }
+
+        Console.WriteLine($"{playerTwo.name}, What do you want to do? Press 1 for Attack, 2 for Move");
+        nextAction = Console.ReadLine()!;
+
+        if (int.Parse(nextAction) == 1)
+        {
+            playerTwo.Attack(playerOne);
+
+        }
+        else if (int.Parse(nextAction) == 2)
+        {
+            playerTwo.Move(playerTwo.position);
+            Console.WriteLine("--------------- LAST MOVE ---------------");
+            Console.WriteLine($"{playerTwo.name} moved a new position of {playerTwo.position}.");
+            Console.WriteLine("----------------- NEXT ------------------");
+        }
     }
 
     public static Weapon AskWeapons(Player player, List<Weapon> weapons)
@@ -119,6 +147,12 @@ public class Player
         status = 1;
         position = new Vector2(Random.Shared.Next(0, 6), Random.Shared.Next(0, 6));
         this.name = name;
+    }
+
+    public void Move(Vector2 newposition)
+    {
+        newposition = new Vector2(Random.Shared.Next(0, 6), Random.Shared.Next(0, 6));
+        position = newposition;
     }
 
     public void Attack(Player target)
