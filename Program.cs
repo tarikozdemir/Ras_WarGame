@@ -1,89 +1,112 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Principal;
-using System.Xml.XPath;
 
 internal class Program
 {
     private static void Main(string[] args)
     {
-        var weaponMarket = new List<Weapon>
-        {
-            new Weapon
-            {
-                name = "Shotgun",
-                damagePower = 70,
-                range = 2,
-                cost = 30
-            },
-            new Weapon
-            {
-                name = "Rifle",
-                damagePower = 30,
-                range = 5,
-                cost = 60
-            },
-            new Weapon
-            {
-                name = "Machine gun",
-                damagePower = 50,
-                range = 3,
-                cost = 45
-            }
-        };
+        Game game = new Game();
+        game.InitializeGame();
+        game.RunGameLoop();
+    }
+}
 
-        var playerCount = AskPlayerCount();
+public class Game
+{
+    private List<Weapon> weaponMarket = new List<Weapon>();
+    private List<Player> players = new List<Player>();
+    private bool gameRunning = true;
 
-        var players = new List<Player>();
+    public Game()
+    {
+        LoadWeapons();
+    }
 
+    private void LoadWeapons()
+    {
+        weaponMarket.Add(new Weapon("Shotgun", 70, 2, 30));
+        weaponMarket.Add(new Weapon("Rifle", 30, 5, 60));
+        weaponMarket.Add(new Weapon("Machine gun", 50, 3, 45));
+    }
+
+    public void InitializeGame()
+    {
+        int playerCount = AskPlayerCount();
         for (int i = 0; i < playerCount; i++)
         {
-            Console.WriteLine($"What is the name of player {i + 1}: ");
+            Console.WriteLine($"What is the name of player {i + 1}?");
             string playerName = Console.ReadLine()!;
-            var player = new Player(playerName);
-            var weapon = AskWeapons(player, weaponMarket);
-            player.inventory.weaponList.Add(weapon);
-            player.currentWeapon = weapon;
-            player.gold -= weapon.cost;
+            var player = new Player(playerName, 100, 100);
+            var weapon = ChooseWeaponForPlayer(player);
+            player.PurchaseWeapon(weapon);
             players.Add(player);
-            Console.WriteLine("--------------- LAST MOVE ---------------");
-            Console.WriteLine($"{player.name} got a {weapon.name}.");
-            Console.WriteLine($"{player.name} has {player.gold} golds remaining.");
-            Console.WriteLine("----------------- NEXT ------------------");
+            DisplayPlayerStatus(player);
             weaponMarket.Remove(weapon);
         }
+    }
 
-        bool gameRunning = true;
+    private int AskPlayerCount()
+    {
+        while (true)
+        {
+            Console.WriteLine("How many players will play the game?");
+            if (int.TryParse(Console.ReadLine(), out int playerCount) && playerCount >= 2)
+            {
+                return playerCount;
+            }
+            Console.WriteLine("Invalid input. Player count cannot be less than 2.");
+        }
+    }
 
+    private Weapon ChooseWeaponForPlayer(Player player)
+    {
+        while (true)
+        {
+            Console.WriteLine($"{player.Name}, which weapon do you want to buy? You have {player.Gold} gold.");
+            for (int i = 0; i < weaponMarket.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}- {weaponMarket[i].Name} costs {weaponMarket[i].Cost} gold.");
+            }
+            if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= weaponMarket.Count)
+            {
+                return weaponMarket[choice - 1];
+            }
+            Console.WriteLine("Invalid selection. Please try again.");
+        }
+    }
+
+    private void DisplayPlayerStatus(Player player)
+    {
+        Console.WriteLine($"--------------- LAST MOVE ---------------");
+        Console.WriteLine($"{player.Name} now has a {player.CurrentWeapon.Name}.");
+        Console.WriteLine($"{player.Name} has {player.Gold} gold remaining.");
+        Console.WriteLine("----------------- NEXT ------------------");
+    }
+
+    public void RunGameLoop()
+    {
         while (gameRunning)
         {
             foreach (var player in players)
             {
-                if (player.status == 0) continue;
+                if (!player.IsAlive) continue;
 
-                Console.WriteLine($"{player.name}, what do you want to do? Press 1 for Attack, 2 for Move:");
-                if (int.TryParse(Console.ReadLine(), out int actionChoice) && (actionChoice == 1 || actionChoice == 2))
+                Console.WriteLine($"{player.Name}, what do you want to do? Press 1 for Attack, 2 for Move:");
+                var input = Console.ReadLine();
+                if (int.TryParse(input, out int actionChoice) && (actionChoice == 1 || actionChoice == 2))
                 {
                     if (actionChoice == 1)
                     {
-                        var targetIndex = (players.IndexOf(player) + 1) % players.Count;
-                        player.Attack(players[targetIndex]);
-                        if (players[targetIndex].status == 0)
+                        Player target = SelectTargetPlayer(player);
+                        if (target != null)
                         {
-                            Console.WriteLine($"{players[targetIndex].name} has died. Game Over.");
-                            gameRunning = false;
-                            break;
+                            Attack(player, target);
                         }
                     }
-                    else if (actionChoice == 2)
+                    else
                     {
-                        player.Move();
-                        Console.WriteLine("--------------- LAST MOVE ---------------");
-                        Console.WriteLine($"{player.name} moved to a new position at {player.position}.");
-                        Console.WriteLine("----------------- NEXT ------------------");
+                        Move(player);
                     }
                 }
                 else
@@ -91,108 +114,124 @@ internal class Program
                     Console.WriteLine("Invalid input. Please enter 1 for Attack or 2 for Move.");
                 }
             }
+            var livePlayers = players.Where(player=>player.IsAlive).ToList();
+            if (livePlayers.Count == 1)
+            {
+                Console.WriteLine($"{livePlayers[0].Name} is the last survivor and wins the game!");
+                gameRunning = false;
+            }
         }
     }
 
-    public static Weapon AskWeapons(Player player, List<Weapon> weapons)
+    private Player SelectTargetPlayer(Player attackingPlayer)
     {
-        Console.WriteLine($"{player.name}, Which weapon do you want to buy? You have {player.gold} golds.");
-        for (int i = 0; i < weapons.Count; i++)
+        Console.WriteLine("Select a target to attack:");
+        int index = 1;
+        Dictionary<int, Player> targetOptions = new Dictionary<int, Player>();
+        foreach (var player in players)
         {
-            Console.WriteLine($"{i + 1}- {weapons[i].name} costs {weapons[i].cost} golds.");
+            if (player != attackingPlayer && player.IsAlive)
+            {
+                Console.WriteLine($"{index} - {player.Name}");
+                targetOptions[index] = player;
+                index++;
+            }
         }
-        var choice = Console.ReadLine();
-        if (int.TryParse(choice, out int intChoice) && intChoice > 0 && intChoice <= weapons.Count)
+        int choice;
+        if (int.TryParse(Console.ReadLine(), out choice) && targetOptions.ContainsKey(choice))
         {
-            return weapons[intChoice - 1];
+            return targetOptions[choice];
         }
         Console.WriteLine("Invalid selection. Please try again.");
-        return AskWeapons(player, weapons);
+        return null;
     }
 
-    public static int AskPlayerCount()
+    private void Attack(Player player, Player target)
     {
-        Console.WriteLine("How many players will play the game?");
-        var playerCount = Console.ReadLine();
-
-        if (int.TryParse(playerCount, out int intPlayerCount) && intPlayerCount > 1)
+        player.Attack(target);
+        if (!target.IsAlive)
         {
-            return intPlayerCount;
+            Console.WriteLine($"{target.Name} has been killed by {player.Name}.");
+            // players.Remove(target);
         }
-        Console.WriteLine("Player count cannot be lower than 2. Please enter a valid number.");
-        return AskPlayerCount();
+    }
+
+    private void Move(Player player)
+    {
+        player.Move();
+        Console.WriteLine("--------------- LAST MOVE ---------------");
+        Console.WriteLine($"{player.Name} moved to a new position at ({player.Position.X}, {player.Position.Y}).");
+        Console.WriteLine("----------------- NEXT ------------------");
+    }
+}
+
+
+public class Player
+{
+    public string Name { get; }
+    public int Health { get; private set; }
+    public int Gold { get; private set; }
+    public Vector2 Position { get; private set; }
+    public Weapon? CurrentWeapon { get; private set; }
+    public bool IsAlive => Health > 0;
+
+    public Player(string name, int health, int gold)
+    {
+        Name = name;
+        Health = health;
+        Gold = gold;
+        Move();
+    }
+
+    public void PurchaseWeapon(Weapon weapon)
+    {
+        CurrentWeapon = weapon;
+        Gold -= weapon.Cost;
+    }
+
+    public void Move()
+    {
+        Position = new Vector2(Random.Shared.Next(0, 6), Random.Shared.Next(0, 6));
+    }
+
+    public void Attack(Player target)
+    {
+        if (!target.IsAlive)
+        {
+            Console.WriteLine("Target is already dead.");
+            return;
+        }
+        if (CurrentWeapon == null || Vector2.Distance(Position, target.Position) > CurrentWeapon.Range)
+        {
+            Console.WriteLine($"{target.Name} is out of range.");
+            return;
+        }
+        target.Health -= CurrentWeapon.DamagePower;
+        if (target.Health <= 0)
+        {
+            target.Health = 0;
+            target.CurrentWeapon = null; // Disarm the defeated player
+            // Console.WriteLine($"{target.Name} has been killed.");
+        }
+        else
+        {
+            Console.WriteLine($"{target.Name} is attacked. Remaining health: {target.Health}.");
+        }
     }
 }
 
 public class Weapon
 {
-    public string name;
-    public int damagePower;
-    public int range;
-    public int cost;
-}
+    public string Name { get; }
+    public int DamagePower { get; }
+    public int Range { get; }
+    public int Cost { get; }
 
-public class Inventory
-{
-    public List<Weapon> weaponList = new List<Weapon>();
-}
-
-public class Player
-{
-    public string name;
-    public int health = 100;
-    public int gold = 100;
-    public int status = 1;
-    public Vector2 position;
-    public Inventory inventory = new Inventory();
-    public Weapon currentWeapon;
-
-    public Player(string name)
+    public Weapon(string name, int damagePower, int range, int cost)
     {
-        this.name = name;
-        position = new Vector2(Random.Shared.Next(0, 6), Random.Shared.Next(0, 6));
-    }
-
-    public void Move()
-    {
-        position = new Vector2(Random.Shared.Next(0, 6), Random.Shared.Next(0, 6));
-    }
-
-    public void Attack(Player target)
-    {
-        if (target.status == 0)
-        {
-            Console.WriteLine("Enemy is already dead.");
-            return;
-        }
-
-        if (currentWeapon == null)
-        {
-            Console.WriteLine("You do not have any weapon in your hand.");
-            return;
-        }
-
-        if (!CanAttack(target))
-        {
-            Console.WriteLine($"{target.name} is out of range of {this.name}.");
-            return;
-        }
-
-        target.health -= currentWeapon.damagePower;
-        if (target.health <= 0)
-        {
-            target.status = 0;
-            Console.WriteLine($"{target.name} is attacked and killed by {this.name}.");
-        }
-        else
-        {
-            Console.WriteLine($"{target.name} is attacked by {this.name}. {target.name}'s remaining health is {target.health}.");
-        }
-    }
-
-    public bool CanAttack(Player target)
-    {
-        var distance = Vector2.Distance(this.position, target.position);
-        return distance <= this.currentWeapon.range;
+        Name = name;
+        DamagePower = damagePower;
+        Range = range;
+        Cost = cost;
     }
 }
