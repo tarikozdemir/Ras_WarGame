@@ -41,11 +41,21 @@ internal class Program
         var choice = AskWeapons(playerOne, weaponMarket);
         playerOne.inventory.weaponList.Add(choice);
         playerOne.currentWeapon = choice;
+        playerOne.gold -= choice.cost;
+        Console.WriteLine("---------------LAST MOVE------------------");
+        Console.WriteLine($"{playerOne.name} got {choice.name}.");
+        Console.WriteLine($"Remaining gold is {playerOne.gold}");
+        Console.WriteLine("-----------------------------------------");
         weaponMarket.Remove(choice);
 
         choice = AskWeapons(playerTwo, weaponMarket);
         playerTwo.inventory.weaponList.Add(choice);
         playerTwo.currentWeapon = choice;
+        playerTwo.gold -= choice.cost;
+        Console.WriteLine("---------------LAST MOVE------------------");
+        Console.WriteLine($"{playerTwo.name} got {choice.name}.");
+        Console.WriteLine($"Remaining gold is {playerTwo.gold}");
+        Console.WriteLine("-----------------------------------------");
         weaponMarket.Remove(choice);
 
         playerTwo.Attack(playerOne);
