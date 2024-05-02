@@ -44,16 +44,16 @@ internal class Program
             Console.WriteLine($"What is the name of player {i + 1}: ");
             string playerName = Console.ReadLine()!;
             var player = new Player(playerName);
-            var order = AskWeapons(player, weaponMarket);
-            player.inventory.weaponList.Add(order);
-            player.currentWeapon = order;
-            player.gold -= order.cost;
+            var weapon = AskWeapons(player, weaponMarket);
+            player.inventory.weaponList.Add(weapon);
+            player.currentWeapon = weapon;
+            player.gold -= weapon.cost;
             players.Add(player);
             Console.WriteLine("--------------- LAST MOVE ---------------");
-            Console.WriteLine($"{player.name} got a {order.name}.");
+            Console.WriteLine($"{player.name} got a {weapon.name}.");
             Console.WriteLine($"{player.name} has {player.gold} golds remaining.");
             Console.WriteLine("----------------- NEXT ------------------");
-            weaponMarket.Remove(order);
+            weaponMarket.Remove(weapon);
         }
 
         bool gameRunning = true;
