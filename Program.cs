@@ -37,9 +37,9 @@ internal class Program
 
         var playerOne = new Player("Player1");
         var playerTwo = new Player("Player2");
-        Console.WriteLine($"What is the name of {playerOne}: ");
+        Console.WriteLine($"What is the name of {playerOne.name}: ");
         playerOne.name = Console.ReadLine()!;
-        Console.WriteLine($"What is the name of {playerTwo}: ");
+        Console.WriteLine($"What is the name of {playerTwo.name}: ");
         playerTwo.name = Console.ReadLine()!;
 
         var choice = AskWeapons(playerOne, weaponMarket);
