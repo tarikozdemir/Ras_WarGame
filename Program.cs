@@ -37,6 +37,10 @@ internal class Program
 
         var playerOne = new Player("Player1");
         var playerTwo = new Player("Player2");
+        Console.WriteLine($"What is the name of {playerOne}: ");
+        playerOne.name = Console.ReadLine()!;
+        Console.WriteLine($"What is the name of {playerTwo}: ");
+        playerTwo.name = Console.ReadLine()!;
 
         var choice = AskWeapons(playerOne, weaponMarket);
         playerOne.inventory.weaponList.Add(choice);
@@ -102,6 +106,7 @@ public class Player
     public string name;
     public int health;
     public int gold;
+    public int status;
 
     public Vector2 position = new();
 
@@ -112,13 +117,14 @@ public class Player
     {
         health = 100;
         gold = 100;
+        status = 1;
         position = new Vector2(Random.Shared.Next(0, 6), Random.Shared.Next(0, 6));
         this.name = name;
     }
 
     public void Attack(Player target)
     {
-        if (target.health <= 0)
+        if (target.status == 0)
         {
             Console.WriteLine("Enemy is already dead.");
             return;
@@ -139,10 +145,11 @@ public class Player
         target.health -= currentWeapon.damagePower;
         if (target.health <= 0)
         {
+            target.status = 0;
             Console.WriteLine($"{target.name} is attacked and killed by {this.name}");
         }
         else
-            Console.WriteLine($"{target.name} is attacked by {this.name}. Remaining health of {target.name} is {target.health}");
+            Console.WriteLine($"{target.name} is attacked by {this.name}. Remaining health of {target.name} is {target.health}, still alive.");
     }
 
     public bool CanAttack(Player target)
