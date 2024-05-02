@@ -43,6 +43,7 @@ internal class Program
         playerTwo.Attack(playerOne);
         playerOne.Attack(playerTwo);
         playerOne.Attack(playerTwo);
+        Console.ReadLine();
     }
 
     public static Weapon AskWeapons(Player player, List<Weapon> weapons)
@@ -53,13 +54,15 @@ internal class Program
             Console.WriteLine($"{i + 1}- {weapons[i].name} ({weapons[i].cost})");
         }
         var choice = Console.ReadLine();
-        if (int.Parse(choice!) < weapons.Count)
+        if (int.TryParse(choice, out var intchoice))
         {
-            return weapons[int.Parse(choice!) - 1];
+            if (intchoice <= weapons.Count && intchoice > 0)
+            {
+                return weapons[intchoice - 1];
+            }
 
         }
-        else
-            return null;
+        return AskWeapons(player, weapons);
     }
 }
 
