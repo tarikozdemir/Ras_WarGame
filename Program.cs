@@ -14,13 +14,13 @@ internal class Program
         {
             new Weapon
             {
-                name = "pompali",
+                name = "shotgun",
                 damagePower = 70,
                 range = 2
             },
             new Weapon
             {
-                name = "sniper",
+                name = "rifle",
                 damagePower = 30,
                 range = 5
             }
@@ -48,7 +48,7 @@ internal class Program
 
     public static Weapon AskWeapons(Player player, List<Weapon> weapons)
     {
-        Console.WriteLine($"{player.name} hangi silahı seçeceksin?");
+        Console.WriteLine($"{player.name} Which weapon do you want to take?");
         for (int i = 0; i < weapons.Count; i++)
         {
             Console.WriteLine($"{i + 1}- {weapons[i].name} ({weapons[i].cost})");
@@ -102,29 +102,29 @@ public class Player
     {
         if (target.health <= 0)
         {
-            Console.WriteLine("Ölmüş adamın üstüne kurşun yağdırılmaz.");
+            Console.WriteLine("Enemy is already dead.");
             return;
         }
 
         if (currentWeapon == null)
         {
-            Console.WriteLine("Elinde silah yok ki");
+            Console.WriteLine("You do not have any weaponin your hand.");
             return;
         }
 
         if (CanAttack(target) == false)
         {
-            Console.WriteLine(target.name + " senin (" + this.name + ") menzilinde değil.");
+            Console.WriteLine($"{target.name} is not within {this.name}'s range");
             return;
         }
 
         target.health -= currentWeapon.damagePower;
         if (target.health <= 0)
         {
-            Console.WriteLine(target.name + " is attacked and killed by " + this.name);
+            Console.WriteLine($"{target.name} is attacked and killed by {this.name}");
         }
         else
-            Console.WriteLine(target.name + " is attacked by " + this.name + ". Remaining health of " + target.name + " is " + target.health);
+            Console.WriteLine($"{target.name} is attacked by {this.name}. Remaining health of {target.name} is {target.health}");
     }
 
     public bool CanAttack(Player target)
