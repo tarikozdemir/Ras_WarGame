@@ -14,20 +14,29 @@ internal class Program
         {
             new Weapon
             {
-                name = "shotgun",
+                name = "Shotgun",
                 damagePower = 70,
-                range = 2
+                range = 2,
+                cost = 30
             },
             new Weapon
             {
-                name = "rifle",
+                name = "Rifle",
                 damagePower = 30,
-                range = 5
+                range = 5,
+                cost = 60
+            },
+            new Weapon
+            {
+                name = "Machine gun",
+                damagePower = 50,
+                range = 3,
+                cost = 45
             }
         };
 
-        var playerOne = new Player("Enis");
-        var playerTwo = new Player("Tarik");
+        var playerOne = new Player("Player1");
+        var playerTwo = new Player("Player2");
 
         var choice = AskWeapons(playerOne, weaponMarket);
         playerOne.inventory.weaponList.Add(choice);
@@ -39,7 +48,6 @@ internal class Program
         playerTwo.currentWeapon = choice;
         weaponMarket.Remove(choice);
 
-
         playerTwo.Attack(playerOne);
         playerOne.Attack(playerTwo);
         playerOne.Attack(playerTwo);
@@ -48,10 +56,10 @@ internal class Program
 
     public static Weapon AskWeapons(Player player, List<Weapon> weapons)
     {
-        Console.WriteLine($"{player.name} Which weapon do you want to take?");
+        Console.WriteLine($"{player.name}, Which weapon do you want to take? You have {player.gold} golds.");
         for (int i = 0; i < weapons.Count; i++)
         {
-            Console.WriteLine($"{i + 1}- {weapons[i].name} ({weapons[i].cost})");
+            Console.WriteLine($"{i + 1}- {weapons[i].name} costs ({weapons[i].cost} gold)");
         }
         var choice = Console.ReadLine();
         if (int.TryParse(choice, out var intchoice))
