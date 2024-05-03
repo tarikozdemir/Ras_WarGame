@@ -17,9 +17,15 @@ public class Game
     private List<Weapon> weaponMarket = new List<Weapon>();
     private List<Player> players = new List<Player>();
     private bool gameRunning = true;
+    private int gridSize = 10;
+    private char[,] grid;
+    private ConsoleColor[] playerColors = new ConsoleColor[] { ConsoleColor.Red, ConsoleColor.Green, ConsoleColor.Blue, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.Yellow, ConsoleColor.White };
+
 
     public Game()
     {
+        grid = new char[gridSize, gridSize];  // Initialize the grid
+        ClearGrid();  // Clear grid initially
         LoadWeapons();
     }
 
@@ -37,12 +43,48 @@ public class Game
         {
             Console.WriteLine($"What is the name of player {i + 1}?");
             string playerName = Console.ReadLine()!;
-            var player = new Player(playerName, 100, 100);
+            var player = new Player(playerName, 100, 100, playerColors[i % playerColors.Length]);
             var weapon = ChooseWeaponForPlayer(player);
             player.PurchaseWeapon(weapon);
             players.Add(player);
+            UpdateGrid(player);  // Update grid with new player position
             DisplayPlayerStatus(player);
             weaponMarket.Remove(weapon);
+        }
+    }
+
+    private void ClearGrid()
+    {
+        for (int i = 0; i < gridSize; i++)
+        {
+            for (int j = 0; j < gridSize; j++)
+            {
+                grid[i, j] = '.';
+            }
+        }
+    }
+
+    private void UpdateGrid(Player player)
+    {
+        ClearGrid();  // Clear previous positions
+        foreach (var p in players)
+        {
+            if (p.IsAlive)
+            {
+                grid[(int)p.Position.X, (int)p.Position.Y] = '@';  // Represent player with '@'
+            }
+        }
+    }
+
+    private void DisplayGrid()
+    {
+        for (int i = 0; i < gridSize; i++)
+        {
+            for (int j = 0; j < gridSize; j++)
+            {
+                Console.Write(grid[i, j] + " ");
+            }
+            Console.WriteLine();
         }
     }
 
@@ -78,10 +120,14 @@ public class Game
 
     private void DisplayPlayerStatus(Player player)
     {
-        Console.WriteLine($"--------------- LAST MOVE ---------------");
+        Console.WriteLine("--------------- PLAYER STATUS ---------------");
+        Console.ForegroundColor = ConsoleColor.Yellow;  // Set text color to yellow for player info
         Console.WriteLine($"{player.Name} now has a {player.CurrentWeapon.Name}.");
         Console.WriteLine($"{player.Name} has {player.Gold} gold remaining.");
-        Console.WriteLine("----------------- NEXT ------------------");
+        Console.ResetColor();  // Reset text color to default
+        Console.WriteLine("----------------- GAME GRID -----------------");
+        DisplayGrid();  // Display the updated game grid
+        Console.WriteLine("-------------------------------------------------");
     }
 
     public void RunGameLoop()
@@ -92,7 +138,9 @@ public class Game
             {
                 if (!player.IsAlive) continue;
 
+                Console.ForegroundColor = player.Color;  // Set text color to player specific color
                 Console.WriteLine($"{player.Name}, what do you want to do? Press 1 for Attack, 2 for Move:");
+                Console.ResetColor();  // Reset text color
                 var input = Console.ReadLine();
                 if (int.TryParse(input, out int actionChoice) && (actionChoice == 1 || actionChoice == 2))
                 {
@@ -108,13 +156,15 @@ public class Game
                     {
                         Move(player);
                     }
+                    UpdateGrid(player);  // Update grid after move or attack
+                    DisplayGrid();  // Display grid
                 }
                 else
                 {
                     Console.WriteLine("Invalid input. Please enter 1 for Attack or 2 for Move.");
                 }
             }
-            var livePlayers = players.Where(player=>player.IsAlive).ToList();
+            var livePlayers = players.Where(player => player.IsAlive).ToList();
             if (livePlayers.Count == 1)
             {
                 Console.WriteLine($"{livePlayers[0].Name} is the last survivor and wins the game!");
@@ -152,16 +202,13 @@ public class Game
         if (!target.IsAlive)
         {
             Console.WriteLine($"{target.Name} has been killed by {player.Name}.");
-            // players.Remove(target);
         }
     }
 
     private void Move(Player player)
     {
         player.Move();
-        Console.WriteLine("--------------- LAST MOVE ---------------");
         Console.WriteLine($"{player.Name} moved to a new position at ({player.Position.X}, {player.Position.Y}).");
-        Console.WriteLine("----------------- NEXT ------------------");
     }
 }
 
@@ -174,12 +221,15 @@ public class Player
     public Vector2 Position { get; private set; }
     public Weapon? CurrentWeapon { get; private set; }
     public bool IsAlive => Health > 0;
+    public ConsoleColor Color { get; }  // Color property
 
-    public Player(string name, int health, int gold)
+
+    public Player(string name, int health, int gold, ConsoleColor color)
     {
         Name = name;
         Health = health;
         Gold = gold;
+        Color = color;  // Set the player's color
         Move();
     }
 
