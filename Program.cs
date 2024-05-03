@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 internal class Program
@@ -19,12 +20,14 @@ public class Game
     private bool gameRunning = true;
     private int gridSize = 10;
     private char[,] grid;
+    private Player[,] gridPlayers;  // To hold player references on the grid
     private ConsoleColor[] playerColors = new ConsoleColor[] { ConsoleColor.Red, ConsoleColor.Green, ConsoleColor.Blue, ConsoleColor.Cyan, ConsoleColor.Magenta, ConsoleColor.Yellow, ConsoleColor.White };
 
 
     public Game()
     {
         grid = new char[gridSize, gridSize];  // Initialize the grid
+        gridPlayers = new Player[gridSize, gridSize];  // Initialize player references grid
         ClearGrid();  // Clear grid initially
         LoadWeapons();
     }
@@ -47,7 +50,7 @@ public class Game
             var weapon = ChooseWeaponForPlayer(player);
             player.PurchaseWeapon(weapon);
             players.Add(player);
-            UpdateGrid(player);  // Update grid with new player position
+            UpdateGrid();  // Update grid with all player positions
             DisplayPlayerStatus(player);
             weaponMarket.Remove(weapon);
         }
@@ -60,18 +63,20 @@ public class Game
             for (int j = 0; j < gridSize; j++)
             {
                 grid[i, j] = '.';
+                gridPlayers[i, j] = null;  // Clear player references
             }
         }
     }
 
-    private void UpdateGrid(Player player)
+    private void UpdateGrid()
     {
         ClearGrid();  // Clear previous positions
-        foreach (var p in players)
+        foreach (var player in players)
         {
-            if (p.IsAlive)
+            if (player.IsAlive)
             {
-                grid[(int)p.Position.X, (int)p.Position.Y] = '@';  // Represent player with '@'
+                grid[(int)player.Position.X, (int)player.Position.Y] = '@';  // Represent player with '@'
+                gridPlayers[(int)player.Position.X, (int)player.Position.Y] = player;  // Reference player in grid
             }
         }
     }
@@ -82,7 +87,12 @@ public class Game
         {
             for (int j = 0; j < gridSize; j++)
             {
+                if (gridPlayers[i, j] != null)
+                {
+                    Console.ForegroundColor = gridPlayers[i, j].Color;  // Set player specific color
+                }
                 Console.Write(grid[i, j] + " ");
+                Console.ResetColor();  // Reset color for other cells
             }
             Console.WriteLine();
         }
@@ -120,8 +130,8 @@ public class Game
 
     private void DisplayPlayerStatus(Player player)
     {
+        Console.ForegroundColor = player.Color;  // Set text color to player specific color
         Console.WriteLine("--------------- PLAYER STATUS ---------------");
-        Console.ForegroundColor = ConsoleColor.Yellow;  // Set text color to yellow for player info
         Console.WriteLine($"{player.Name} now has a {player.CurrentWeapon.Name}.");
         Console.WriteLine($"{player.Name} has {player.Gold} gold remaining.");
         Console.ResetColor();  // Reset text color to default
@@ -156,7 +166,7 @@ public class Game
                     {
                         Move(player);
                     }
-                    UpdateGrid(player);  // Update grid after move or attack
+                    UpdateGrid();  // Update grid after move or attack
                     DisplayGrid();  // Display grid
                 }
                 else
